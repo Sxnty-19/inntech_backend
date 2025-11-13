@@ -53,6 +53,6 @@ app.include_router(usuario_habitacion_router, prefix="/usuarios_habitaciones", t
 app.include_router(usuario_router, prefix="/usuarios", tags=["Usuarios"])
 
 # Endpoint raíz opcional
-@app.get("/", tags=["Sistema"])
+@app.api_route("/", methods=["GET", "HEAD"], tags=["Sistema"])
 async def root():
     return {"message": "API en funcionamiento..."}
