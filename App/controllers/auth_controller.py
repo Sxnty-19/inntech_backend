@@ -4,6 +4,7 @@ from config.db_config import get_db_connection
 from utils.password_utils import hash_password, verify_password
 from utils.jwt_utils import crear_token
 from utils.timezone_utils import get_fecha_actual
+from utils.mailer_utils import send_email
 
 class AuthController:
 
@@ -46,6 +47,18 @@ class AuthController:
                 )
             )
             conn.commit()
+
+            html_mensaje = """
+            <html>
+            <body>
+                <h1>Bienvenido a nuestra plataforma</h1>
+                <p>Su cuenta ha sido creada exitosamente.</p>
+                <p>¡Gracias por unirse a nosotros!</p>
+            </body>
+            </html>
+            """
+
+            send_email(destinatario = usuario.correo, asunto = "Bienvenido", mensaje = html_mensaje, html = True)
 
             return {
                 "success": True, 

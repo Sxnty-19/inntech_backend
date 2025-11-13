@@ -56,8 +56,3 @@ app.include_router(usuario_router, prefix="/usuarios", tags=["Usuarios"])
 @app.get("/", tags=["Sistema"])
 async def root():
     return {"message": "API en funcionamiento..."}
-
-# Ejecución del servidor
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
