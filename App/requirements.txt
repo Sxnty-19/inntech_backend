@@ -1,0 +1,8 @@
+mysql-connector-python
+python-dotenv
+pydantic
+pytz
+bcrypt
+PyJWT
+python-telegram-bot
+requests
