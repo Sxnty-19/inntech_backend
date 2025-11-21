@@ -79,35 +79,37 @@ class ModuloRolController:
             if conn:
                 conn.close()
 
-    def get_modulorol_by_id(self, id_mxr: int):
+    def get_modulos_by_rol(self, id_rol: int):
         conn = None
         cursor = None
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            cursor.execute("""
-                SELECT * FROM modulo_rol 
-                WHERE id_mxr = %s
-            """, (id_mxr,))
-            data = cursor.fetchone()
 
-            if not data:
-                raise HTTPException(status_code=404, detail="Módulo-Rol no encontrado.")
+            query = """
+                SELECT m.id_modulo, m.nombre, m.ruta
+                FROM modulo_rol mr
+                INNER JOIN modulo m ON mr.id_modulo = m.id_modulo
+                WHERE mr.id_rol = %s AND mr.estado = 1
+            """
 
+            cursor.execute(query, (id_rol,))
+            data = cursor.fetchall()
+
+            # SOLUCIÓN: devolver lista vacía, NO ERROR
             return {
                 "success": True,
                 "data": jsonable_encoder(data)
             }
 
         except mysql.connector.Error as err:
-            raise HTTPException(status_code=500, detail=f"Error al obtener módulo-rol: {err}")
+            raise HTTPException(500, f"Error al obtener módulos del rol: {err}")
 
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            if cursor: cursor.close()
+            if conn: conn.close()
+
 
     def get_modulos_by_rol(self, id_rol: int):
         conn = None

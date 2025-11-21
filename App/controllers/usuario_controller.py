@@ -133,51 +133,26 @@ class UsuarioController:
             if conn:
                 conn.close()
 
-    def update_usuario(self, id_usuario: int, usuario: Usuario):
+    def update_usuario_parcial(self, id_usuario: int, data: dict):
         conn = None
         cursor = None
-
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            fecha_actual = get_fecha_actual()
 
-            # Solo actualizamos los campos permitidos
-            query = """
-                UPDATE usuario
-                SET
-                    primer_nombre = %s,
-                    segundo_nombre = %s,
-                    primer_apellido = %s,
-                    segundo_apellido = %s,
-                    telefono = %s,
-                    date_updated = %s
-                WHERE id_usuario = %s
-            """
-            values = (
-                usuario.primer_nombre,
-                usuario.segundo_nombre,
-                usuario.primer_apellido,
-                usuario.segundo_apellido,
-                usuario.telefono,
-                fecha_actual,
-                id_usuario
-            )
+            # Generar dinámicamente SET campo = valor
+            campos = ", ".join([f"{key} = %s" for key in data.keys()])
+            valores = list(data.values())
 
-            cursor.execute(query, values)
+            query = f"UPDATE usuario SET {campos}, date_updated = NOW() WHERE id_usuario = %s"
+            valores.append(id_usuario)
+
+            cursor.execute(query, valores)
             conn.commit()
 
-            if cursor.rowcount == 0:
-                raise HTTPException(status_code=404, detail="Usuario no encontrado para actualizar.")
-
-            return {
-                "success": True,
-                "message": "Usuario actualizado correctamente."
-            }
+            return {"success": True, "message": "Usuario actualizado correctamente"}
 
         except mysql.connector.Error as err:
-            if conn:
-                conn.rollback()
             raise HTTPException(status_code=500, detail=f"Error al actualizar usuario: {err}")
 
         finally:

@@ -21,8 +21,8 @@ async def get_usuario_by_id(id_usuario: int):
     return rpta
 
 @router.put("/update_usuario/{id_usuario}")
-async def actualizar_usuario(id_usuario: int, usuario: Usuario):
-    rpta =  usuario_controller.update_usuario(id_usuario, usuario)
+async def actualizar_usuario(id_usuario: int, data: dict):
+    rpta = usuario_controller.update_usuario_parcial(id_usuario, data)
     return rpta
 
 @router.put("/desactivar/{id_usuario}")

@@ -31,10 +31,11 @@ async def cancelar_reserva(id_reserva: int):
     rpta = reserva_controller.cancelar_reserva(id_reserva)
     return rpta
 
-@router.get("/terminadas")
-async def reservas_terminadas():
-    rpta = reserva_controller.get_reservas_terminadas()
+@router.get("/terminadas/{id_usuario}")
+async def reservas_terminadas(id_usuario: int):
+    rpta = reserva_controller.get_reservas_terminadas_usuario(id_usuario)
     return rpta
+
 
 @router.get("/get_reserva_completa/{id_reserva}")
 async def get_reserva_completa(id_reserva: int):

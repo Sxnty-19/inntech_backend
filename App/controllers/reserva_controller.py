@@ -134,6 +134,7 @@ class ReservaController:
                 SELECT *
                 FROM reserva
                 WHERE id_usuario = %s
+                AND estado = 1
                 AND (date_start > %s OR date_end > %s)
             """
             cursor.execute(query, (id_usuario, fecha_actual, fecha_actual))
@@ -163,7 +164,7 @@ class ReservaController:
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            fecha_actual = get_fecha_actual()
+            fecha_actual = get_fecha_actual().replace(tzinfo=None)
 
             # Obtener la reserva
             cursor.execute("SELECT * FROM reserva WHERE id_reserva = %s", (id_reserva,))
@@ -174,9 +175,18 @@ class ReservaController:
 
             # Verificar si faltan más de 24 horas
             date_start = reserva["date_start"]
-            if isinstance(date_start, str):
-                date_start = datetime.fromisoformat(date_start)
 
+            if isinstance(date_start, str):
+                # Manejo robusto del formato
+                try:
+                    date_start = datetime.strptime(date_start, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    try:
+                        date_start = datetime.fromisoformat(date_start)
+                    except Exception:
+                        raise HTTPException(status_code=500, detail=f"Formato de fecha inválido: {date_start}")
+
+            # Comparación correcta
             if date_start - fecha_actual < timedelta(hours=24):
                 raise HTTPException(
                     status_code=400,
@@ -209,24 +219,32 @@ class ReservaController:
             if conn:
                 conn.close()
 
-    def get_reservas_terminadas(self):
+    def get_reservas_terminadas_usuario(self, id_usuario: int):
         conn = None
         cursor = None
 
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
+
             fecha_actual = get_fecha_actual()
+
             query = """
                 SELECT *
                 FROM reserva
-                WHERE date_end < %s
+                WHERE id_usuario = %s AND date_end < %s
+                ORDER BY date_end DESC
             """
-            cursor.execute(query, (fecha_actual,))
+
+            cursor.execute(query, (id_usuario, fecha_actual))
             data = cursor.fetchall()
 
             if not data:
-                raise HTTPException(status_code=404, detail="No hay reservas terminadas.")
+                return {
+                    "success": True,
+                    "data": [],
+                    "message": "No hay reservas terminadas para este usuario."
+                }
 
             return {
                 "success": True,
