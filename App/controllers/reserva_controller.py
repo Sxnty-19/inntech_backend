@@ -65,7 +65,6 @@ class ReservaController:
             if conn:
                 conn.close()
 
-
     def get_reservas(self):
         conn = None
         cursor = None
@@ -277,3 +276,64 @@ class ReservaController:
                 cursor.close()
             if conn:
                 conn.close()
+
+    def create_reserva_with_habitaciones(self, id_usuario: int, date_start: str, date_end: str, habitaciones: list, estado=1):
+        conn = None
+        cursor = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            fecha_actual = get_fecha_actual()
+
+            # 1) validar que usuario tenga documento (tu lógica actual)
+            cursor.execute("SELECT * FROM documento WHERE id_usuario = %s", (id_usuario,))
+            documento = cursor.fetchone()
+            if not documento:
+                raise HTTPException(status_code=400, detail="El usuario no tiene ningún documento registrado, no se puede crear la reserva.")
+
+            # 2) verificar disponibilidad previa para cada habitación (opcional pero recomendable)
+            for id_h in habitaciones:
+                cursor.execute("""
+                    SELECT 1
+                    FROM reserva_habitacion rh
+                    JOIN reserva r ON rh.id_reserva = r.id_reserva
+                    WHERE rh.id_habitacion = %s
+                    AND r.estado != 0
+                    AND (r.date_start < %s)
+                    AND (r.date_end > %s)
+                    LIMIT 1
+                """, (id_h, date_end, date_start))
+                clash = cursor.fetchone()
+                if clash:
+                    raise HTTPException(status_code=400, detail=f"Habitación {id_h} no disponible para las fechas solicitadas.")
+
+            # 3) crear la reserva
+            insert_reserva = """
+                INSERT INTO reserva (id_usuario, date_start, date_end, estado, date_created, date_updated)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            cursor.execute(insert_reserva, (id_usuario, date_start, date_end, estado, fecha_actual, fecha_actual))
+            id_reserva = cursor.lastrowid
+
+            # 4) insertar relaciones reserva_habitacion
+            insert_rh = """
+                INSERT INTO reserva_habitacion (id_reserva, id_habitacion, estado, date_created, date_updated)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            for id_h in habitaciones:
+                cursor.execute(insert_rh, (id_reserva, id_h, 1, fecha_actual, fecha_actual))
+
+            conn.commit()
+            return {"success": True, "message": "Reserva creada con habitaciones.", "id_reserva": id_reserva}
+
+        except HTTPException:
+            if conn:
+                conn.rollback()
+            raise
+        except mysql.connector.Error as err:
+            if conn:
+                conn.rollback()
+            raise HTTPException(status_code=500, detail=f"Error al crear reserva con habitaciones: {err}")
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()

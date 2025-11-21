@@ -29,3 +29,8 @@ async def numeros_estados():
 async def actualizar_estado_habitacion( numero: str = Form(...), estado: int = Form(...)):
     rpta = habitacion_controller.actualizar_estado_por_numero(numero, estado)
     return rpta
+
+@router.get("/habitaciones_disponibles")
+async def habitaciones_disponibles(date_start: str, date_end: str):
+    rpta = habitacion_controller.get_habitaciones_disponibles(date_start, date_end)
+    return rpta

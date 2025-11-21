@@ -3,7 +3,7 @@ from models.usuario_model import Usuario
 from controllers.auth_controller import AuthController
 from utils.jwt_utils import verificar_token
 
-router = APIRouter() #prefix="/auth", tags=["Auth"]
+router = APIRouter()
 auth_controller = AuthController()
 
 # Registro

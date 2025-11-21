@@ -178,3 +178,37 @@ class HabitacionController:
                 cursor.close()
             if conn:
                 conn.close()
+
+    def get_habitaciones_disponibles(self, date_start: str, date_end: str):
+        conn = None
+        cursor = None
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            query = """
+            SELECT h.*
+            FROM habitacion h
+            WHERE h.estado = 1
+            AND h.id_habitacion NOT IN (
+                SELECT rh.id_habitacion
+                FROM reserva_habitacion rh
+                JOIN reserva r ON rh.id_reserva = r.id_reserva
+                WHERE r.estado != 0
+                AND (r.date_start < %s)
+                AND (r.date_end > %s)
+            )
+            """
+            cursor.execute(query, (date_end, date_start))
+            data = cursor.fetchall()
+
+            return {
+                "success": True,
+                "data": jsonable_encoder(data)
+            }
+
+        except mysql.connector.Error as err:
+            raise HTTPException(status_code=500, detail=f"Error al obtener habitaciones disponibles: {err}")
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()

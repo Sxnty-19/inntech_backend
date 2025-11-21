@@ -117,6 +117,8 @@ class AuthController:
             # Datos que no incluyen contraseña
             user_data = {
                 "rol": user["nombre_rol"],
+                "id_usuario": user["id_usuario"],
+                "id_rol": user["id_rol"],
                 "primer_nombre": user["primer_nombre"],
                 "segundo_nombre": user["segundo_nombre"],
                 "primer_apellido": user["primer_apellido"],

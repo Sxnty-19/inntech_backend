@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from controllers.reserva_controller import ReservaController
 from models.reserva_model import Reserva
+from models.ReservaWithRooms_model import ReservaWithRooms
 
 router = APIRouter()
 reserva_controller = ReservaController()
@@ -38,4 +39,14 @@ async def reservas_terminadas():
 @router.get("/get_reserva_completa/{id_reserva}")
 async def get_reserva_completa(id_reserva: int):
     rpta = reserva_controller.get_reserva_con_usuario(id_reserva)
+    return rpta
+
+@router.post("/create_with_rooms")
+async def create_reserva_with_rooms(payload: ReservaWithRooms):
+    rpta = reserva_controller.create_reserva_with_habitaciones(
+        payload.id_usuario,
+        payload.date_start,
+        payload.date_end,
+        payload.habitaciones
+    )
     return rpta
