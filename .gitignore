@@ -1,87 +1,12 @@
 # ============================
-# 🔹 ENTORNO GENERAL
+# 🔹 FastAPI
 # ============================
 
-# Archivos de entorno
-.env
-.env.*
-!.env.example
-!.env.test
-
-# Archivos de configuración local
-*.local
-*.cache
-*.tmp
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ============================
-# 🔹 PYTHON / BACKEND / BOT
-# ============================
-
-# Virtual environments
-.venv/
 venv/
-env/
-myvenv/
+.env
 
-# Archivos de compilación
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Archivos de base de datos locales
-*.sqlite3
-db.sqlite3
-
-# Carpetas de desarrollo y configuraciones
 .vscode/
-.idea/
-
-# ============================
-# 🔹 FRONTEND (SvelteKit / Vite)
-# ============================
-
-# Dependencias
-Frontend/node_modules/
-
-# Compilados y salida
-Frontend/.svelte-kit/
-Frontend/build/
-Frontend/dist/
-Frontend/.output/
-
-# Plataformas de despliegue
-Frontend/.vercel/
-Frontend/.netlify/
-Frontend/.wrangler/
-
-# Configuración temporal de Vite
-Frontend/vite.config.js.timestamp-*
-Frontend/vite.config.ts.timestamp-*
-
-# Archivos del sistema
-.DS_Store
-Thumbs.db
-
-# ============================
-# 🔹 OTROS ARCHIVOS
-# ============================
-
-# Archivos temporales o de pruebas
-*.bak
-*.swp
-*.swo
-*.tmp
-*.log
-
-# Archivos de documentación autogenerados
-docs/_build/
-build/
-dist/
-
-# Archivos de sistema
-ehthumbs.db
-Icon?
