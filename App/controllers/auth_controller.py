@@ -47,6 +47,7 @@ class AuthController:
                 )
             )
             conn.commit()
+            new_id = cursor.lastrowid
 
             html_mensaje = """
             <html>
@@ -62,7 +63,8 @@ class AuthController:
 
             return {
                 "success": True, 
-                "message": "Usuario registrado exitosamente"
+                "message": "Usuario registrado exitosamente",
+                "id_usuario": new_id
             }
 
         except mysql.connector.Error as err:

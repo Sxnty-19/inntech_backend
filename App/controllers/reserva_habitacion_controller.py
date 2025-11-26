@@ -108,3 +108,45 @@ class ReservaHabitacionController:
                 cursor.close()
             if conn:
                 conn.close()
+
+    def get_habitaciones_by_reserva(self, id_reserva: int):
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            query = """
+                SELECT 
+                    h.id_habitacion,
+                    h.numero,
+                    h.estado,
+                    h.limpieza,
+                    h.id_thabitacion,
+                    t.capacidad_max
+                FROM reserva_habitacion rxh
+                INNER JOIN habitacion h ON rxh.id_habitacion = h.id_habitacion
+                INNER JOIN tipo_habitacion t ON h.id_thabitacion = t.id_thabitacion
+                WHERE rxh.id_reserva = %s
+            """
+
+            cursor.execute(query, (id_reserva,))
+            data = cursor.fetchall()
+
+            return {
+                "success": True,
+                "habitaciones": data
+            }
+
+        except mysql.connector.Error as err:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al obtener habitaciones: {err}"
+            )
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()

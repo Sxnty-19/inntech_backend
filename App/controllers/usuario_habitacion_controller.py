@@ -136,3 +136,108 @@ class UsuarioHabitacionController:
                 cursor.close()
             if conn:
                 conn.close()
+
+    def check_capacidad(self, id_reserva: int, id_habitacion: int, capacidad_max: int):
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            # Contar usuarios asignados a la habitación en esa reserva
+            query = """
+                SELECT COUNT(*) AS ocupados
+                FROM usuario_habitacion
+                WHERE id_reserva = %s
+                AND id_habitacion = %s
+                AND estado = 1
+            """
+
+            cursor.execute(query, (id_reserva, id_habitacion))
+            result = cursor.fetchone()
+
+            ocupados = result["ocupados"] if result else 0
+
+            disponible = ocupados < capacidad_max
+
+            return {
+                "success": True,
+                "disponible": disponible,
+                "ocupados": ocupados,
+                "capacidad": capacidad_max,
+                "message": "Habitación disponible" if disponible else "Habitación llena"
+            }
+
+        except mysql.connector.Error as err:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al validar capacidad: {err}"
+            )
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    def registrar_salida(self, id_reserva: int, id_usuario: int):
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            fecha_actual = get_fecha_actual()
+
+            # Verificar si existe un registro activo (estado = 1)
+            select_query = """
+                SELECT id_uxh
+                FROM usuario_habitacion
+                WHERE id_reserva = %s
+                AND id_usuario = %s
+                AND estado = 1
+                LIMIT 1
+            """
+            cursor.execute(select_query, (id_reserva, id_usuario))
+            data = cursor.fetchone()
+
+            if not data:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No se encontró un registro activo para este usuario en esta reserva."
+                )
+
+            id_uxh = data[0]
+
+            # Actualizar estado y fecha de salida
+            update_query = """
+                UPDATE usuario_habitacion
+                SET estado = 0,
+                    date_check_out = %s,
+                    date_updated = %s
+                WHERE id_uxh = %s
+            """
+            cursor.execute(update_query, (fecha_actual, fecha_actual, id_uxh))
+            conn.commit()
+
+            return {
+                "success": True,
+                "message": "Salida registrada exitosamente.",
+                "id_uxh": id_uxh
+            }
+
+        except mysql.connector.Error as err:
+            if conn:
+                conn.rollback()
+
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error al registrar salida: {err}"
+            )
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()

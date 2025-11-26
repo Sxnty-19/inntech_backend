@@ -24,3 +24,8 @@ async def get_documento_by_id(id_documento: int):
 async def get_documentos_con_usuario_y_tipo():
     rpta = documento_controller.get_documentos_con_usuario_y_tipo()
     return rpta
+
+@router.get("/buscar_usuario_por_documento/{numero_documento}")
+async def buscar_usuario_por_documento(numero_documento: str):
+    rpta = documento_controller.buscar_usuario_por_documento(numero_documento)
+    return rpta

@@ -159,3 +159,52 @@ class DocumentoController:
                 cursor.close()
             if conn:
                 conn.close()
+
+    def buscar_usuario_por_documento(self, numero_documento: str):
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor(dictionary=True)
+
+            query = """
+                SELECT 
+                    d.id_documento,
+                    d.numero_documento,
+                    u.id_usuario,
+                    CONCAT(
+                        u.primer_nombre, ' ',
+                        IFNULL(u.segundo_nombre, ''), ' ',
+                        u.primer_apellido, ' ',
+                        IFNULL(u.segundo_apellido, '')
+                    ) AS nombre_completo
+                FROM documento d
+                INNER JOIN usuario u ON d.id_usuario = u.id_usuario
+                WHERE d.numero_documento = %s
+                LIMIT 1
+            """
+
+            cursor.execute(query, (numero_documento,))
+            data = cursor.fetchone()
+
+            if not data:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No se encontró ningún usuario con ese número de documento."
+                )
+
+            return {
+                "success": True,
+                "message": "Usuario encontrado.",
+                "data": jsonable_encoder(data)
+            }
+
+        except mysql.connector.Error as err:
+            raise HTTPException(status_code=500, detail=f"Error al buscar usuario: {err}")
+
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()

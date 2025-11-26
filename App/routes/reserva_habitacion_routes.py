@@ -19,3 +19,8 @@ async def get_reservas_habitaciones():
 async def get_reserva_habitacion_by_id(id_rxh: int):
     rpta = reserva_habitacion_controller.get_reserva_habitacion_by_id(id_rxh)
     return rpta
+
+@router.get("/get_habitaciones_by_reserva/{id_reserva}")
+async def get_habitaciones_by_reserva(id_reserva: int):
+    rpta = reserva_habitacion_controller.get_habitaciones_by_reserva(id_reserva)
+    return rpta
